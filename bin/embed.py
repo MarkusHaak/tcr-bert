@@ -51,9 +51,6 @@ def build_parser():
         "-l", "--layer", type=int, default=-1, help="Transformer layer to use"
     )
     parser.add_argument(
-        "-r", "--res", type=float, default=32, help="Leiden clustering resolution"
-    )
-    parser.add_argument(
         "-g",
         "--gpu",
         required=False,
@@ -78,7 +75,7 @@ def main():
         )
         trbs = [x for x in trbs if ft.adheres_to_vocab(x)]
         logging.info(f"Read in {len(trbs)} unique valid TCRs from {args.infile}")
-        obs_df = pd.DataFrame(trbs, columns=["TCR"])
+        obs_df = pd.DataFrame(trbs, columns=["TCRB"])
         embeddings = model_utils.get_transformer_embeddings(
             model_dir=args.transformer,
             seqs=trbs,
@@ -87,7 +84,19 @@ def main():
             device=args.gpu,
         )
     elif args.mode == "AB":
-        raise NotImplementedError
+        trabs = utils.dedup(
+            [trab.split("\t")[0] for trab in utils.read_newline_file(args.infile)]
+        )
+        trabs = [x for x in trabs if ft.adheres_to_vocab(x, vocab=ft.AMINO_ACIDS_WITH_ALL_ADDITIONAL)]
+        logging.info(f"Read in {len(trabs)} unique valid TCRs from {args.infile}")
+        obs_df = pd.DataFrame(trabs, columns=["TCRA|TCRB"])
+        embeddings = model_utils.get_transformer_embeddings(
+            model_dir=args.transformer,
+            seqs=trabs,
+            layers=[args.layer],
+            method="mean",
+            device=args.gpu,
+        )
     assert embeddings is not None
 
     # Create an anndata object to perform clsutering

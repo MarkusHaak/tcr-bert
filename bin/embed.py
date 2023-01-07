@@ -75,7 +75,7 @@ def main():
         )
         trbs = [x for x in trbs if ft.adheres_to_vocab(x)]
         logging.info(f"Read in {len(trbs)} unique valid TCRs from {args.infile}")
-        obs_df = pd.DataFrame(trbs, columns=["TCRB"])
+        obs_df = pd.DataFrame(trbs, columns=['IR_VDJ_1_junction_aa'])
         embeddings = model_utils.get_transformer_embeddings(
             model_dir=args.transformer,
             seqs=trbs,
@@ -89,7 +89,8 @@ def main():
         )
         trabs = [x for x in trabs if ft.adheres_to_vocab(x, vocab=ft.AMINO_ACIDS_WITH_ALL_ADDITIONAL)]
         logging.info(f"Read in {len(trabs)} unique valid TCRs from {args.infile}")
-        obs_df = pd.DataFrame(trabs, columns=["TCRA|TCRB"])
+        obs_df = pd.DataFrame(trabs, columns=['TRA+TRB'])
+        obs_df.str.replace('|','+')
         embeddings = model_utils.get_transformer_embeddings(
             model_dir=args.transformer,
             seqs=trabs,
@@ -99,7 +100,7 @@ def main():
         )
     assert embeddings is not None
 
-    # Create an anndata object to perform clsutering
+    # Create an anndata object and export it
     embed_adata = ad.AnnData(embeddings, obs=obs_df)
     embed_adata.write_h5ad(args.outfile, compression='gzip')
 

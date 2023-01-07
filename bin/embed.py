@@ -90,7 +90,7 @@ def main():
         trabs = [x for x in trabs if ft.adheres_to_vocab(x, vocab=ft.AMINO_ACIDS_WITH_ALL_ADDITIONAL)]
         logging.info(f"Read in {len(trabs)} unique valid TCRs from {args.infile}")
         obs_df = pd.DataFrame(trabs, columns=['TRA+TRB'])
-        obs_df.str.replace('|','+')
+        obs_df['TRA+TRB'].str.replace('|','+')
         embeddings = model_utils.get_transformer_embeddings(
             model_dir=args.transformer,
             seqs=trabs,
